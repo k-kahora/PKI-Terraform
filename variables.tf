@@ -14,6 +14,19 @@ variable "azs" {
   default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
 }
+variable "db_password" {
+  type        = string
+  description = "admin password for the db instance"
+  sensitive   = true
+  default     = "6wQ3DgAi3TWqTxSQcWF5"
+
+}
+variable "db_username" {
+  type        = string
+  description = "admin username for the db instance"
+  sensitive   = true
+  default     = "ejbca_admin"
+}
 
 
 variable "subnets" {
@@ -22,6 +35,11 @@ variable "subnets" {
     availability_zone = string
     custom_ipv6       = number # use 0 to 11
   }))
+
+
+
+
+
   default = {
     sn-reserved-A = { cidr_block = "10.16.0.0/20", availability_zone = "us-east-1a", custom_ipv6 = 0 }
     sn-db-A       = { cidr_block = "10.16.16.0/20", availability_zone = "us-east-1a", custom_ipv6 = 1 }
