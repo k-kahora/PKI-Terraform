@@ -1,5 +1,7 @@
 # TODO 
-- Store the state file in Terraform HPC Cloud
+- [ ] Store the state file in Terraform HPC Cloud
+- [ ] Use container behind a proxy
+- [ ] Have a highly available database setup
 # Docker hub ami
 https://hub.docker.com/r/keyfactor/ejbca-ce
 ## Steps to build
