@@ -7,7 +7,7 @@ output "instance_public_ip" {
   description = "Public IP address of the EC2 instance"
   value = {
     for instance_key, instance in aws_instance.app_ec2_instances :
-    instance_key => instance.public_ip
+    instance_key => "https://${instance.public_ip}:443/ejbca/adminweb/"
   }
 }
 output "database_endpoint" {

@@ -178,7 +178,7 @@ resource "aws_instance" "app_ec2_instances" {
     for key, value in aws_subnet.private_subnets :
     key => value if can(regex("^sn-web-A", key))
   }
-  ami                         = "ami-0765fe4e78d685ef6"
+  ami                         = "ami-0476d32c286451f79"
   key_name                    = "SSO-Key-malcolm"
   vpc_security_group_ids      = [aws_security_group.allow_ssh_and_https.id]
   instance_type               = "t3.medium"
