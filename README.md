@@ -6,13 +6,17 @@
 https://hub.docker.com/r/keyfactor/ejbca-ce
 ## Steps to build
 
+## Packer
+The ami is build with the packer deploy command, 
+``` shell
+./deploy-packer.sh
+```
+That only has to be run if you change the AMI,
+Right now the way this setup works is on creation sed is used to to replace the systemd service with the right commands and run the docker container, because the database password and enpoint are only know at terraform apply so its not possible to have the AMI working at the start
+
 ``` shell
 terraform apply
 ```
-
-- Log into the server using instance connect
-- Install maria db client and create the database, the username and password should be in the variables-file
-- db-endpoint is outputted by terraform
 
 ``` shell
 sudo apt update
@@ -22,24 +26,9 @@ mysql -h <db-endpoint> -u <db-username> -p (enter <dp-password>)
 CREATE DATABASE ejbca;
 exit
 ```
-- Run ejbca with the following
-
-``` shell
-
-sudo docker run -it --rm \
-  -p 80:8080 -p 443:8443 \
-  -h mycahostname \
-  -e TLS_SETUP_ENABLED="true" \
-  -e DATABASE_JDBC_URL="jdbc:mariadb://<db-endpoint>:3306/ejbca?characterEncoding=UTF-8" \
-  -e DATABASE_USER="<db-user>" \
-  -e DATABASE_PASSWORD="<db-password>" \
-  keyfactor/ejbca-ce
-
-```
 On launch and when the container finishes go do where mycahostname is the public ip of the ec2 instance
 https://mycahostname:443/ejbca/ra/enrollwithusername.xhtml?username=superadmin
 
-- The initial password can be found in the EC2 instance's system logs or console output.
 follow these instructions to setup up to step 3
 https://docs.keyfactor.com/ejbca/latest/quick-start-guide-start-ejbca-container-with-clien
 

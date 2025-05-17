@@ -57,3 +57,4 @@ variable "subnets" {
     sn-web-C      = { cidr_block = "10.16.176.0/20", availability_zone = "us-east-1c", custom_ipv6 = 11 }
   }
 }
+

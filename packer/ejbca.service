@@ -1,0 +1,19 @@
+[Unit]
+Description=EJBCA Docker Container
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker run --rm --name ejbca \
+  -p 80:8080 -p 443:8443 \
+  -h {{HOSTNAME}} \
+  -e TLS_SETUP_ENABLED={{TLS_MODE}} \
+  -e DATABASE_JDBC_URL="jdbc:mariadb://{{ENDPOINT_INSERT}}:3306/ejbca?characterEncoding=UTF-8" \
+  -e DATABASE_USER="<<USER_INSERT>>" \
+  -e DATABASE_PASSWORD="{{PASS_INSERT}}" \
+  keyfactor/ejbca-ce
+ExecStop=/usr/bin/docker stop ejbca
+
+[Install]
+WantedBy=multi-user.target

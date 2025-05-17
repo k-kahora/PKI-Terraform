@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Check all required env vars
+
+# Define paths
+SERVICE_PATH="/etc/systemd/system/ejbca.service"
+
+# Replace placeholders, write to systemd dir
+echo "[INFO] Rendering ejbca.service..."
+sudo sed -i -e "s|{{ENDPOINT_INSERT}}|${db_endpoint}|g" \
+    -e "s|<<USER_INSERT>>|${db_username}|g" \
+    -e "s|{{PASS_INSERT}}|${db_password}|g" \
+    "$SERVICE_PATH" 
+
+# Reload systemd and enable service
+echo "[INFO] Enabling and starting ejbca.service..."
+sudo systemctl daemon-reload
+sudo systemctl enable ejbca.service
+sudo systemctl start ejbca.service
+
+# Optional: check status
+echo "[INFO] Service status:"
+sudo systemctl status ejbca.service --no-pager

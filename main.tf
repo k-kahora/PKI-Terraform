@@ -147,41 +147,6 @@ resource "aws_security_group" "rds_sg" {
 }
 
 
-# Should only deploy these into web subnets
-# This currently uses a custom AMI made ahead of time with docker installed
-resource "aws_instance" "app_ec2_instances" {
-  for_each = {
-    for key, value in aws_subnet.private_subnets :
-    key => value if can(regex("^sn-web-A", key))
-  }
-  ami                    = "ami-0a33bff80f6ad8914"
-  key_name               = "SSO-Key-malcolm"
-  vpc_security_group_ids = [aws_security_group.allow_ssh_and_https.id]
-  instance_type          = "t3.medium"
-  subnet_id              = each.value.id
-  # NOTE user data is broken
-  # user_data = <<-EOF
-  # #!/bin/bash
-  # set -e
-  #
-  # # Add Docker's official GPG key:
-  # sudo apt-get update
-  # sudo apt-get install -y ca-certificates curl
-  # sudo install -m 0755 -d /etc/apt/keyrings
-  # sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-  # sudo chmod a+r /etc/apt/keyrings/docker.asc
-  #
-  # # Add the repository to Apt sources:
-  # echo \
-  #   "deb [arch=$$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  #   $$(. /etc/os-release && echo $${UBUNTU_CODENAME:-$${VERSION_CODENAME}}) stable" | \
-  #   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  #
-  # sudo apt-get update
-  # EOF
-
-}
-
 resource "aws_db_subnet_group" "ejbac-db-subnet-group" {
   name = "db-subnet-group"
   subnet_ids = [
@@ -191,14 +156,44 @@ resource "aws_db_subnet_group" "ejbac-db-subnet-group" {
 
 resource "aws_db_instance" "ejbca" {
   identifier             = "ejbca"
+  db_name                = "ejbca"
   instance_class         = "db.t3.micro" # free tier 
   allocated_storage      = 20
   engine                 = "mariadb"
   engine_version         = "11.4.4" # most recent version on rds
   username               = var.db_username
   password               = var.db_password
-  skip_final_snapshot    = "true" # do not save backup when terraform destroys
   db_subnet_group_name   = aws_db_subnet_group.ejbac-db-subnet-group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  apply_immediately      = true
+  skip_final_snapshot    = true
+  storage_encrypted      = false
+  publicly_accessible    = false
 }
+
+# Should only deploy these into web subnets
+# This currently uses a custom AMI made ahead of time with docker installed
+resource "aws_instance" "app_ec2_instances" {
+  for_each = {
+    for key, value in aws_subnet.private_subnets :
+    key => value if can(regex("^sn-web-A", key))
+  }
+  ami                         = "ami-0765fe4e78d685ef6"
+  key_name                    = "SSO-Key-malcolm"
+  vpc_security_group_ids      = [aws_security_group.allow_ssh_and_https.id]
+  instance_type               = "t3.medium"
+  subnet_id                   = each.value.id
+  associate_public_ip_address = true
+
+  user_data = templatefile("./userdata.tftpl", {
+    db_endpoint = aws_db_instance.ejbca.address
+    db_password = var.db_password
+    db_username = var.db_username
+  })
+
+}
+
+
+
+
 
